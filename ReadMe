@@ -6,7 +6,9 @@ supporting Section 4.1: Method Comparison.
 
 Reproduce_Figure4.R reproduces the method comparisons illustrated in Figure 4. The details of the other folders are given below.
 
-At the top of this file a flag variable 'run' is defined with default 'run=F'. This would let the code load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
+At the top of this file a flag variable 'run' is defined with default 'run=F'. 
+
+This allows to load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
 
 By setting it 'TRUE', one can rerun all the simulations and obtain all the results, provided in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'
 
