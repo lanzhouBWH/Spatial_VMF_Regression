@@ -1,8 +1,8 @@
 Spatial_VMF_Regression
 =====================
 
-This code repository accompanies the manuscript "Spatial von-Mises Fisher Regression for Directional Data", 
-supporting Section 4.1: Method Comparison.
+This code repository accompanies the manuscript "Spatial von-Mises Fisher Regression for Directional Data" with all the implementation codes and specific codes to 
+to reproduce Figure 4 from Section 4.1.
 
 Reproduce_Figure4.R reproduces the method comparisons illustrated in Figure 4. The details of the other folders are given below.
 
