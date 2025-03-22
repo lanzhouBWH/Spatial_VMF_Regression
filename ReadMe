@@ -1,10 +1,17 @@
-VMF_Regression_Codes
+Spatial_VMF_Regression
 =====================
 
 This code repository accompanies the manuscript "Spatial von-Mises Fisher Regression for Directional Data", 
 supporting Section 4.1: Method Comparison.
 
-The main folder 'VMF_Regression_Codes' contains two subfolders:
+Reproduce_Figure4.R reproduces the method comparisons illustrated in Figure 4. The details of the other folders are given below.
+
+At the top of this file a flag variable 'run' is defined with default 'run=F'. This would let the code load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
+
+By setting it 'TRUE', one can rerun all the simulations and obtain all the results, provided in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'
+
+########################################################################################################################################################
+The main folder 'Spatial_VMF_Regression' contains two main subfolders:
 
 1. Functions
 ------------
@@ -19,14 +26,11 @@ This folder includes all function definitions required for running the analyses.
   This script ensures all necessary R packages are installed and loaded.  
   Please run this script before executing any other code.
 
-2. 4_1_Method_Comparison
+2. Codes_to_reproduce_Figure4
 ------------------------
 
-This folder contains all the code, simulation results, and figures to replicate the results presented 
-in Section 4.1: Method Comparison of the Manuscript.
+This folder contains all the codes (used by Reproduce_Figure4.R) to replicate the results presented in Section 4.1: Method Comparison of the Manuscript.
 
-Code
-~~~~
 Includes two subfolders:
 
 - Simulation_Code  
@@ -37,9 +41,6 @@ Includes two subfolders:
   * VMF_SIM: The simulation script for spatial vmf regression
   * NORMAL_SIM: The simulation script for spatial vmf regression
   * NonSpatial_VMF_SIM: The simulation script for non-spatial vmf regression
-  
-- Visualization_Code  
-  "Figure4.R" visualize simulation results, i.e., Figure 4.
 
 Simulation_Output
 ~~~~~~~~~~~~~~~~~
