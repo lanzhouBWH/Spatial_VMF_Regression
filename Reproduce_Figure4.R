@@ -20,7 +20,7 @@ run = F
 #########################################################################
 
 ###Set the folder path where the Spatial_VMF_Regression is placed
-current_folder <- "Put the path of Spatial_VMF_Regression folder here"
+current_folder <- "Put the parent path of Spatial_VMF_Regression folder here"
 
 # Set the working directory
 setwd(current_folder)
