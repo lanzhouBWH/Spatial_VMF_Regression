@@ -1,14 +1,49 @@
+cran_packages <- c("ggplot2", "ggfortify", "miceadds")
+
+# Install and load CRAN packages
+for (pkg in cran_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cloud.r-project.org/")
+  }
+  library(pkg, character.only = TRUE)
+}
+
 ####### Loading Required Libraries #############################################
 library(ggplot2)
 library(ggfortify)
 library(miceadds)
+
+####### Flag to run all the codes to regenerate all the outputs ########################
+#Run is to F so it will load all the saved outputs of all 50 replications
+#from 'Codes_to_reproduce_Figure4/Simulation_Output/'
+run = F 
+#########################################################################
+
+###Set the folder path where the Spatial_VMF_Regression is placed
+current_folder <- "Put the path of Spatial_VMF_Regression folder here"
+
+# Set the working directory
+setwd(current_folder)
+
+# Verify the working directory
+getwd()
+####################################################
+
+if(run){
+  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/Simulation_Code/VMF_SIM.R")
+  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/Simulation_Code/NonSpatial_VMF_SIM.R")
+  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/Simulation_Code/NORMAL_SIM.R")
+}
+
 ################################################################################
 
-Base="/Users/zhoulan/Dropbox (Personal)/AkapravaRoy_ZhouLan/Technometrics_Revision/"
+####### Saving Paths #########################################################
+Fig_Path=paste0("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Figures/")
+################################################################################
+
 
 ####### Defining Paths #########################################################
-Output_Path=paste0(Base,"VMF_Regression_Codes/4_1_Method_Comparison/Simulation_Output/")
-Fig_Path=paste0(Base,"VMF_Regression_Codes/4_1_Method_Comparison/Figures/")
+Output_Path=paste0("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/")
 ################################################################################
 
 
@@ -81,14 +116,14 @@ for(index in 1:nrow(comb_vmf)){
   kappa=comb_vmf[index,2]
   P=comb_vmf[index,3]
   
-load(paste(Output_Path,"VMF_FITTING_P_",P,"_kappa_",kappa,"_Rep_",Rep,".Rdata",sep=""))
-
-    temp1=data.frame(Method=paste0("VMF: P=",P),
-                     alpha=mean(Validation_lmvmf_p$alpha),
-                     Metric="Seperation Angle",Type="Proposed",kappa=kappa)
-    temp2=data.frame(Method=paste0("VMF: P=",P),
-                     alpha=mean(Validation_lmvmf_p.regular$alpha),
-                     Metric="Root Mean Squared Error",Type="Proposed",kappa=kappa)
+  load(paste(Output_Path,"VMF_FITTING_P_",P,"_kappa_",kappa,"_Rep_",Rep,".Rdata",sep=""))
+  
+  temp1=data.frame(Method=paste0("VMF: P=",P),
+                   alpha=mean(Validation_lmvmf_p$alpha),
+                   Metric="Seperation Angle",Type="Proposed",kappa=kappa)
+  temp2=data.frame(Method=paste0("VMF: P=",P),
+                   alpha=mean(Validation_lmvmf_p.regular$alpha),
+                   Metric="Root Mean Squared Error",Type="Proposed",kappa=kappa)
   
   
   
@@ -124,5 +159,3 @@ P2=ggplot(RR[RR$Metric=="Root Mean Squared Error",], aes(x=Method, y=alpha, colo
   )+ylab("Root Mean Squared Error")
 show(P2)
 dev.off()
-
-
