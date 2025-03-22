@@ -10,7 +10,7 @@ At the top of this file a flag variable 'run' is defined with default 'run=F'.
 
 This allows to load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
 
-By setting it 'TRUE', one can rerun all the simulations and obtain all the results, provided in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'
+By setting it 'TRUE', one can rerun all the simulations and resave all the results in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'.
 
 #########################################################################
 The main folder 'Spatial_VMF_Regression' contains two main subfolders:
