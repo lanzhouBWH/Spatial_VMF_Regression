@@ -11,9 +11,9 @@ current_folder <- "Put the parent path of Spatial_VMF_Regression folder here"
 
 At the top of this file a flag variable 'run' is defined with default 'run=F'. 
 
-This allows to load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
+  - This allows to load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
 
-By setting it 'TRUE', one can rerun all the simulations and resave all the results in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'.
+  - By setting it 'TRUE', one can rerun all the simulations and resave all the results in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'.
 
 #########################################################################
 ########### The details of the sub-folders are given below ##############
