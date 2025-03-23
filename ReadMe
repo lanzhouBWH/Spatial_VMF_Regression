@@ -16,7 +16,7 @@ This allows to load all the saved simulation outputs from 'Spatial_VMF_Regressio
 By setting it 'TRUE', one can rerun all the simulations and resave all the results in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'.
 
 #########################################################################
-###########The details of the other folders are given below.#############
+########### The details of the sub-folders are given below ##############
 #########################################################################
 The main folder 'Spatial_VMF_Regression' contains two main subfolders:
 
