@@ -27,7 +27,7 @@ Simulation Outputs
 ------------------
 - Files are saved in 'Simulation_Output/' with names indicating model, kappa, and replication number.
   * "VMF_FITTING_P_XX_kappa_YY_Rep_NN.Rdata": NN-th simulation output for spatial VMF regression with P=XX, kappa=YY
-  * VMF_Normal1__kappa_YY_Rep_NN.Rdata": NN-th simulation output for Gaussian Regression 1 with kappa=YY
+  * "VMF_Normal1__kappa_YY_Rep_NN.Rdata": NN-th simulation output for Gaussian Regression 1 with kappa=YY
   * "VMF_Normal2__kappa_YY_Rep_NN.Rdata": NN-th simulation output for Gaussian Regression 2 with kappa=YY
   * "NonSpatial_VMF_FITTING_kappa_YY_Rep_NN.Rdata": NN-th simulation output for spatial VMF regression kappa=YY
 
