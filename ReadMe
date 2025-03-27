@@ -6,70 +6,23 @@ to reproduce Figure 4 from Section 4.1. Below are some remarks.
 
 - Prerequisite: a) Please make the folder "Spatial_VMF_Regression" under the root directory; b) Please ensure the functions in the folder "Functions" are sourced correctly.
 - The file "Reproduce_Figure4.R" reproduces the method comparisons illustrated in Figure 4.
-  * At the top of this file a flag variable 'run' is defined with default 'run=F'. This allows to load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
-  * 
-
-
-
-At the top of this file a flag variable 'run' is defined with default 'run=F'. 
-
-  - This allows to load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
-
-  - By setting it 'TRUE', one can rerun all the simulations and resave all the results in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'.
-
-#########################################################################
-########### The details of the sub-folders are given below ##############
-#########################################################################
-The main folder 'Spatial_VMF_Regression' contains two main subfolders:
-
-1. Functions
-------------
-
-This folder includes all function definitions required for running the analyses.
-
-- VMF_Reg.R  
-  It contains the main function 'VMF_Reg()' that implements the MCMC algorithm for the spatial von Mises Fisher regression.  
-  Details of the function arguments are provided within the body of the function.
-
-- Packages.R  
-  This script ensures all necessary R packages are installed and loaded.  
-  Please run this script before executing any other code.
-
-2. Codes_to_reproduce_Figure4
-------------------------
-
-This folder contains all the codes (used by Reproduce_Figure4.R) to replicate the results presented in Section 4.1: Method Comparison of the Manuscript.
-
-Includes two subfolders:
-
-- Simulation_Code  
-  Provides three scripts for generating simulation outputs.  
-  Note: These simulations were run on a High Performance Computing (HPC) environment, 
-  and the outputs of values of evaluation metrics (Seperation Angles and Rooted root mean square error) are stored in "Simulation_Output"
-  For conciseness, each method  A typical example is provided for demonstration. The code comments in each script shows three major steps: a) Simulation Data Generation (Training and Validation); b) MCMC fitting; c) Evaluation Metrics
-  * VMF_SIM: The simulation script for spatial vmf regression
-  * NORMAL_SIM: The simulation script for spatial vmf regression
-  * NonSpatial_VMF_SIM: The simulation script for non-spatial vmf regression
-
-Simulation_Output
-~~~~~~~~~~~~~~~~~
-Includes generated simulation outputs of values of evaluation metrics used for visualizations. 
-- "VMF_FITTING_P_XX_kappa_YY_Rep_NN.Rdata": NN-th simulation output for spatial VMF regression with P=XX, kappa=YY
-** "Validation_lmvmf_p$alpha": a V*M matrix of seperation angles for V voxels and M subjects.
-** "Validation_lmvmf_p.regular$alpha": a V*M matrix of Rooted root mean square error for V voxels and M subject
-
-- "VMF_Normal1__kappa_YY_Rep_NN.Rdata": NN-th simulation output for Gaussion Regression 1 with kappa=YY
-** "Validation_Validation_Normal1$alpha": a V*M matrix of seperation angles for V voxels and M subjects.
-** "Validation_Validation_Normal1.regular$alpha": a V*M matrix of Rooted root mean square error for V voxels and M subject
-
-- "VMF_Normal2__kappa_YY_Rep_NN.Rdata": NN-th simulation output for Gaussion Regression 2 with kappa=YY
-** "Validation_Validation_Normal2$alpha": a V*M matrix of seperation angles for V voxels and M subjects.
-** "Validation_Validation_Normal2.regular$alpha": a V*M matrix of Rooted root mean square error for V voxels and M subject
-
-- "NonSpatial_VMF_FITTING_kappa_YY_Rep_NN.Rdata": 
-** "Validation_lmvmf_p$alpha": a V*M matrix of seperation angles for V voxels and M subjects.
-** "Validation_lmvmf_p.regular$alpha": a V*M matrix of Rooted root mean square error for V voxels and M subject
-
-
-
-
+  * At the top of this file a flag variable 'run' is defined with default 'run=FALSE'. This allows to load all the saved simulation outputs from 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/' to reproduce the figures.
+  * By setting it 'TRUE,' one can rerun all the simulations and resave all the results in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'.
+- Simulation Details:
+  * The folder "Code" provides three scripts for generating simulation outputs. The code comments in each script show three major steps: a) Simulation Data Generation (Training and Validation); b) MCMC fitting; c) Evaluation Metrics Calculation
+    **VMF_SIM: The simulation script for spatial vmf regression
+    ** NORMAL_SIM: The simulation script for spatial vmf regression
+    ** NonSpatial_VMF_SIM: The simulation script for non-spatial vmf regression
+  * Simulation_Output: Includes generated simulation outputs of values of evaluation metrics used for visualizations. 
+    ** "VMF_FITTING_P_XX_kappa_YY_Rep_NN.Rdata": NN-th simulation output for spatial VMF regression with P=XX, kappa=YY
+      *** "Validation_lmvmf_p$alpha": a V*M matrix of separation angles for V voxels and M subjects.
+      *** "Validation_lmvmf_p.regular$alpha": a V*M matrix of Rooted root mean square error for V voxels and M subject
+    ** "VMF_Normal1__kappa_YY_Rep_NN.Rdata": NN-th simulation output for Gaussian Regression 1 with kappa=YY
+      *** "Validation_Validation_Normal1$alpha": a V*M matrix of separation angles for V voxels and M subjects.
+      *** "Validation_Validation_Normal1.regular$alpha": a V*M matrix of Rooted root mean square error for V voxels and M subject
+    ** "VMF_Normal2__kappa_YY_Rep_NN.Rdata": NN-th simulation output for Gaussian Regression 2 with kappa=YY
+      *** "Validation_Validation_Normal2$alpha": a V*M matrix of separation angles for V voxels and M subjects.
+      *** "Validation_Validation_Normal2.regular$alpha": a V*M matrix of Rooted root mean square error for V voxels and M subject
+    ** "NonSpatial_VMF_FITTING_kappa_YY_Rep_NN.Rdata": 
+      *** "Validation_lmvmf_p$alpha": a V*M matrix of separation angles for V voxels and M subjects.
+      *** "Validation_lmvmf_p.regular$alpha": a V*M matrix of Rooted root mean square error for V voxels and M subject
