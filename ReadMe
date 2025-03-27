@@ -5,7 +5,7 @@ This repository contains code for the manuscript "Spatial von-Mises Fisher Regre
 
 Setup
 -----
-- Create the folder 'Spatial_VMF_Regression' under the root directory.
+- Put the folder 'Spatial_VMF_Regression' under the root directory.
 - Ensure all functions in the 'Functions' folder are sourced.
 
 Main Script
