@@ -19,15 +19,6 @@ library(miceadds)
 run = F 
 #########################################################################
 
-###Set the folder path where the Spatial_VMF_Regression is placed
-current_folder <- "Put the parent path of Spatial_VMF_Regression folder here"
-
-# Set the working directory
-setwd(current_folder)
-
-# Verify the working directory
-getwd()
-####################################################
 
 if(run){
   source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/Simulation_Code/VMF_SIM.R")
