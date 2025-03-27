@@ -1,8 +1,7 @@
 Spatial_VMF_Regression
 =====================
 
-This code repository accompanies the manuscript "Spatial von-Mises Fisher Regression for Directional Data" with all the implementation codes and specific codes to 
-to reproduce Figure 4 from Section 4.1. Below are some remarks.
+This code repository accompanies the manuscript "Spatial von-Mises Fisher Regression for Directional Data" with all the implementation codes and specific codes to reproduce Figure 4 from Section 4.1. Below are some remarks.
 
 - Prerequisite: a) Please make the folder "Spatial_VMF_Regression" under the root directory; b) Please ensure the functions in the folder "Functions" are sourced correctly.
 - The file "Reproduce_Figure4.R" reproduces the method comparisons illustrated in Figure 4.
@@ -10,7 +9,7 @@ to reproduce Figure 4 from Section 4.1. Below are some remarks.
   * By setting it 'TRUE,' one can rerun all the simulations and resave all the results in 'Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/'.
 - Simulation Details:
   * The folder "Code" provides three scripts for generating simulation outputs. The code comments in each script show three major steps: a) Simulation Data Generation (Training and Validation); b) MCMC fitting; c) Evaluation Metrics Calculation
-    **VMF_SIM: The simulation script for spatial vmf regression
+    ** VMF_SIM: The simulation script for spatial vmf regression
     ** NORMAL_SIM: The simulation script for spatial vmf regression
     ** NonSpatial_VMF_SIM: The simulation script for non-spatial vmf regression
   * Simulation_Output: Includes generated simulation outputs of values of evaluation metrics used for visualizations. 
