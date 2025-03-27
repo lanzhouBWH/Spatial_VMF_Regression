@@ -4,7 +4,7 @@ Spatial_VMF_Regression
 This code repository accompanies the manuscript "Spatial von-Mises Fisher Regression for Directional Data" with all the implementation codes and specific codes to 
 to reproduce Figure 4 from Section 4.1.
 
-Reproduce_Figure4.R reproduces the method comparisons illustrated in Figure 4.
+The file "Reproduce_Figure4.R" reproduces the method comparisons illustrated in Figure 4.
 
 Please update the following line accordingly before running the script: 
 current_folder <- "Put the parent path of Spatial_VMF_Regression folder here"
