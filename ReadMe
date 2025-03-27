@@ -31,5 +31,5 @@ Simulation Outputs
   * "NonSpatial_VMF_FITTING_kappa_YY_Rep_NN.Rdata": NN-th simulation output for spatial VMF regression kappa=YY
 
 - Each .Rdata file includes evaluation metrics as two V×M matrices (V = number of voxels, M = number of subjects):
-	 *	Separation Angles: Stored in objects like Validation_*$alpha, representing the angle between predicted and true directions.
-	 *	Rooted RMSE: Stored in objects like Validation_*regular$alpha, representing the rooted mean square error of directional predictions.
+  * Separation Angles: Stored in objects like Validation_*$alpha, representing the angle between predicted and true directions.
+  * Rooted RMSE: Stored in objects like Validation_*regular$alpha, representing the rooted mean square error of directional predictions.
