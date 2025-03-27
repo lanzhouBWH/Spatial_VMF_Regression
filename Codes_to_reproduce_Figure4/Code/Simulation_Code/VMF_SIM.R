@@ -16,19 +16,16 @@ source.all(Function_Path)
 load(paste0(Data_Path,"synthetic.Rdata"))
 ################################################################################
 
-###### Specify Simulation Conditions ###########################################
-
-################################################################################
 
 
+      
+for(Rep in 1:50){            ### The specification for 50 Replications ###
+  set.seed(Rep)
+  for(kappa in c(20,30,40)){ ### The specification for Conerntration Parameter kappa=20,30,40 ###
+    for(P in 2:7){           ### The specification for Lagkappa=20,30,40 ###
       ################################################################################
       ######## Step 1: Data Simulation ###############################################
       ################################################################################
-for(Rep in 1:50){
-  set.seed(Rep)
-  for(kappa in c(20,30,40)){
-    for(P in 2:7){      
-      
       ### Getting Coefficients and Training Data #####################
       Training<-Training[seq(1,80,4),]
       group_index_cat=(Training$Group)
