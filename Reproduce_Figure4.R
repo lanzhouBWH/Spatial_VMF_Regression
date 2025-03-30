@@ -16,14 +16,14 @@ library(miceadds)
 ####### Flag to run all the codes to regenerate all the outputs ########################
 #Run is to F so it will load all the saved outputs of all 50 replications
 #from 'Codes_to_reproduce_Figure4/Simulation_Output/'
-run = F 
+run = FALSE 
 #########################################################################
 
 
 if(run){
-  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/Simulation_Code/VMF_SIM.R")
-  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/Simulation_Code/NonSpatial_VMF_SIM.R")
-  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/Simulation_Code/NORMAL_SIM.R")
+  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/VMF_SIM.R")
+  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/NonSpatial_VMF_SIM.R")
+  source("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Code/NORMAL_SIM.R")
 }
 
 ################################################################################
@@ -34,7 +34,7 @@ Fig_Path=paste0("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Figures/")
 
 
 ####### Defining Paths #########################################################
-Output_Path=paste0("Spatial_VMF_Regression/Codes_to_reproduce_Figure4/Simulation_Output/")
+Output_Path=paste0("Spatial_VMF_Regression/Codes_to_reproduce_Figure4//Simulation_Output/")
 ################################################################################
 
 
