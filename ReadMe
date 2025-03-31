@@ -25,7 +25,7 @@ Simulation Scripts/Data
   * Fiber_Ind: A V-length vector where the integer which fiber the voxel belongs to.
   * COEF$alpha[g]: A (C+1)*V alpha coefficients for group G 
   * COEF$beta[g]: A (C+1)*V beta coefficients for group G 
-- 
+  * Training/Validation: Covariate information for subjects in training data and validation data. The variable "Group" creates group indices. The varaibles "Sex"/"Age"/"MMSCORE"/"APGEN" create the covariate vectors.
 
 Simulation Outputs
 ------------------
