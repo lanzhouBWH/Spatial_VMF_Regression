@@ -15,13 +15,17 @@ Main Script
   * Set 'run = TRUE' to rerun simulations and overwrite outputs in that folder.
   * The figures will be saved in 'Codes_to_reproduce_Figure4/Figures/'
 
-Simulation Scripts
+Simulation Scripts/Data
 ------------------
-- Located in the 'Code' folder:
+- Located in the 'Code' folder: Each script includes steps: 1. Data generation; 2. MCMC fitting; 3. Evaluation metric calculation
   * VMF_SIM.R: Spatial VMF regression
   * NORMAL_SIM.R: Gaussian regression
   * NonSpatial_VMF_SIM.R: Non-spatial VMF regression
-- Each script includes steps: 1. Data generation; 2. MCMC fitting; 3. Evaluation metric calculation
+- Located in the 'Data' folder: synthetic.Rdata
+  * Fiber_Ind: A V-length vector where the integer which fiber the voxel belongs to.
+  * COEF$alpha[g]: A (C+1)*V alpha coefficients for group G 
+  * COEF$beta[g]: A (C+1)*V beta coefficients for group G 
+- 
 
 Simulation Outputs
 ------------------
