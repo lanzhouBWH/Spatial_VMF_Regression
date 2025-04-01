@@ -11,7 +11,7 @@ Setup
 Main Script
 -----------
 - 'Reproduce_Figure4.R' replicates Figure 4:
-  * Set 'run = FALSE' (default) to load saved results from 'Codes_to_reproduce_Figure4/Simulation_Output/' (Due to the journal upload limitation, only 20 replications are given).
+  * Set 'run = FALSE' (default) to load saved results from 'Codes_to_reproduce_Figure4/Simulation_Output/'.
   * Set 'run = TRUE' to rerun simulations and overwrite outputs in that folder.
   * The figures will be saved in 'Codes_to_reproduce_Figure4/Figures/'
 
