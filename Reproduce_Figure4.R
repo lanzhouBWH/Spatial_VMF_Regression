@@ -40,7 +40,7 @@ Output_Path=paste0("Spatial_VMF_Regression/Codes_to_reproduce_Figure4//Simulatio
 
 kappa_all=c(20,30,40)
 P_all=2:7
-seed_all=1:20
+seed_all=1:50
 comb_normal=expand.grid(seed_all,kappa_all)
 comb_vmf=expand.grid(seed_all,kappa_all,P_all)
 
