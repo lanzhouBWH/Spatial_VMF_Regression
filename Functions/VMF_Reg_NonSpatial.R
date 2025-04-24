@@ -1,30 +1,55 @@
-VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fit=NULL,save.dir=NULL,Saving_Freq=50,Para=TRUE){
+VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,fit=NULL,save.dir=NULL,Saving_Freq=50,Para=TRUE){
  
   
+  # dvmf<-function (y, mu, k, logden = FALSE) 
+  # {
+  #   y <- as.matrix(y)
+  #   p <- dim(y)[2]
+  #   if (p == 1) 
+  #     y <- t(y)
+  #   p <- dim(y)[2]
+  #   den <- (p/2 - 1) * log(k) - 0.5 * p * log(2 * pi) + k * tcrossprod(mu, 
+  #                                                                      y) - log(besselI(k, p/2 - 1, expon.scaled = TRUE)) - 
+  #     k
+  #   if (!logden) 
+  #     den <- exp(den)
+  #   den
+  # }
   
-  dvmf<-function (y, mu, k, logden = FALSE) 
-  {
-    y <- as.matrix(y)
-    p <- dim(y)[2]
-    if (p == 1) 
-      y <- t(y)
-    p <- dim(y)[2]
-    den <- (p/2 - 1) * log(k) - 0.5 * p * log(2 * pi) + k * tcrossprod(mu, 
-                                                                       y) - log(besselI(k, p/2 - 1, expon.scaled = TRUE)) - 
-      k
-    if (!logden) 
-      den <- exp(den)
-    den
+  quadform_change_by_k <- function(y, Q, k, new_yk) {
+    yk_old <- y[k]
+    y_fixed <- y
+    y_fixed[k] <- 0
+    cross_term <- sum(Q[k, ] * y_fixed)
+    delta <- 2 * (new_yk - yk_old) * cross_term +
+      (new_yk^2 - yk_old^2) * Q[k, k]
+    return(delta)
   }
+  
+  
+  
+  dvmf<- function(y, mu, kappa, logden = FALSE) {
+    # Normalize inputs to unit vectors (just in case)
+    y <- as.numeric(y / sqrt(sum(y^2)))
+    mu <- as.numeric(mu / sqrt(sum(mu^2)))
+    
+    dot <- sum(mu * y)
+    
+    if (logden) {
+      log_density <- log(kappa) - log(4 * pi * sinh(kappa)) + kappa * dot
+      return(log_density)
+    } else {
+      density <- (kappa / (4 * pi * sinh(kappa))) * exp(kappa * dot)
+      return(density)
+    }
+  }
+  
   
   
   #### Register Cluster ################################################################################
   #myCluster <- makeCluster(detectCores()-1, # number of cores to use
   #                         type = "SOCK") # type of cluster
   #registerDoParallel(myCluster)
-  if(Para==TRUE){
-    registerDoParallel(cores=detectCores()-1)
-  }
   ######################################################################################################
   
   
@@ -37,11 +62,18 @@ VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fi
     it=1
     
     #### Exact List Object to environment#################################################################
-    list2env(Data_list, globalenv())
+    #list2env(Data_list, globalenv())
+    Y <- Data_list$Y
+    Fiber_Ind <- Data_list$Fiber_Ind
+    group_index <- Data_list$group_index
+    X <- Data_list$X
     I=length(Y); V=length(Fiber_Ind); p=ncol(X); K=length(unique(Fiber_Ind)); G=length(unique(group_index))
+    Fiber_Seq <- ave(Fiber_Ind, Fiber_Ind, FUN = seq_along)
     ######################################################################################################
     
-    
+    if(Para==TRUE){
+      registerDoParallel(cores=I)
+    }
     #### Conditional Distribution Sepecifcation ##########################################################
     #COND_DIST=lapply(1:K, function(k)  vecchia_specify(matrix(1:sum(Fiber_Ind==k),ncol=1),m=P)$U.prep$revNNarray)
     #V_Ktype=unlist(lapply(1:K, function(k) 1:sum(Fiber_Ind==k) ))
@@ -184,11 +216,14 @@ VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fi
   
   pb <- txtProgressBar(min = 0, max = iters, style = 3)
   for (it in it:iters){
+    if (it %% 10 == 0) {
+      cat("Iteration:", it, "\n")
+    }
     setTxtProgressBar(pb, it)
     
     ##### Metropolis Hastings:#######
     ##### theta_phi_scaled_all:#######
-    OOO<-foreach(i=1:I ) %dopar% {
+    OOO<-foreach(i=1:I,.export = c("theta_phi_scaled2mu","inv.logit","sph2cart") ) %dopar% {
       
       ii=sample(1:I,1)
       
@@ -208,12 +243,11 @@ VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fi
           Resi_theta_phi_old<-theta_phi_scaled_old-Mean_theta_phi_all[[i]]
           Resi_theta_phi_can<-theta_phi_scaled_can-Mean_theta_phi_all[[i]]
           
-          like_old=dvmf(U%*%Y[[i]][v,],  as.numeric(theta_phi_scaled2mu(theta_phi_scaled_old[v,]),kappa), TRUE)+
-            as.numeric(-0.5*(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],1]%*%Q_resi_theta[[Fiber_Ind[v]]])%*%(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],1]))+
-            as.numeric(-0.5*(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],2]%*%Q_resi_phi[[Fiber_Ind[v]]])%*%(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],2]))
-          like_can=dvmf(U%*%Y[[i]][v,],as.numeric(theta_phi_scaled2mu(theta_phi_scaled_can[v,]),kappa),TRUE)+
-            as.numeric(-0.5*(Resi_theta_phi_can[Fiber_Ind==Fiber_Ind[v],1]%*%Q_resi_theta[[Fiber_Ind[v]]])%*%(Resi_theta_phi_can[Fiber_Ind==Fiber_Ind[v],1]))+
-            as.numeric(-0.5*(Resi_theta_phi_can[Fiber_Ind==Fiber_Ind[v],2]%*%Q_resi_phi[[Fiber_Ind[v]]])%*%(Resi_theta_phi_can[Fiber_Ind==Fiber_Ind[v],2]))
+          like_old=dvmf(U%*%Y[[i]][v,],  (theta_phi_scaled2mu(theta_phi_scaled_old[v,])),kappa, TRUE)
+          like_can=dvmf(U%*%Y[[i]][v,],(theta_phi_scaled2mu(theta_phi_scaled_can[v,])),kappa,TRUE)
+          diff1=like_can-like_old
+          diff2=-0.5*quadform_change_by_k(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],1], Q_resi_theta[[Fiber_Ind[v]]], Fiber_Seq[v], Resi_theta_phi_can[v,1])
+          diff3=-0.5*quadform_change_by_k(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],2], Q_resi_phi[[Fiber_Ind[v]]], Fiber_Seq[v], Resi_theta_phi_can[v,2])
           
           # like_old=dvmf(Y[[i]][v,],  as.numeric(theta_phi_scaled2mu(theta_phi_scaled_old[v,]),kappa),TRUE)
           # like_can=dvmf(Y[[i]][v,],as.numeric(theta_phi_scaled2mu(theta_phi_scaled_can[v,]),kappa),TRUE)
@@ -225,12 +259,11 @@ VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fi
           # A=Q_resi_theta[[Fiber_Ind[v]]]
           
           
-          prob=min(1,as.numeric(exp(like_can-like_old
-          )))
           # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
-          MH=(like_can-like_old)
+          prob=min(1,as.numeric(exp(diff1+diff2+diff3
+          )))
+          MH=(diff1+diff2+diff3)
           Accept<-(log(runif(1))<MH)
-          if (is.na(Accept)|is.na(prob)){Accept=FALSE; prob=0}
           if(Accept){
             
             theta_phi_scaled_all[[i]]<-theta_phi_scaled_can
@@ -307,101 +340,101 @@ VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fi
     
     
     
-    ##### Metropolis-Hastings:###################################################################
-    ##### Update rho_alpha ######################################################################
-    alpha_resi=lapply(1:G, function(g) alpha[[g]]-mu_alpha[[g]])
-    for (PP in 1:P){
-      rho_alpha_old<-rho_alpha
-      pacf_alpha_old<-inla.ar.phi2pacf(rho_alpha_old)
-      #u<-rnorm(1)*S_rho_alpha[PP]
-      pacf_alpha_can<-pacf_alpha_old
-      #pacf_alpha_can[PP]<-min(0.99,inv.logit(logit(pacf_alpha_can[PP])+u))
-      pacf_alpha_can[PP]<-tanh(rnorm(1,0,0.5))*0
-      rho_alpha_can<-inla.ar.pacf2phi(pacf_alpha_can)
-      
-      
-      Q_coef_theta_old=Q_coef_theta
-      Q_coef_theta_can<-(lapply(1:K, function(k) solve(ARMA.var(n=sum(Fiber_Ind==k), ar=rho_alpha_can,corr=TRUE)*sigma_theta^2) ) )
-      
-      
-      #like_old<-dbeta(pacf_alpha_old[PP],10,1,log=TRUE)
-      #like_can<-dbeta(pacf_alpha_can[PP],10,1,log=TRUE)
-      
-      like_old<-0
-      like_can<-0
-      for (k in 1:K){
-        like_old=like_old+sum(sapply(1:G,function(g) sum(sapply(1:p, function(pp) 0.5*log(det(Q_coef_theta_old[[k]]))+as.numeric(-0.5*alpha_resi[[g]][pp,Fiber_Ind==k]%*%Q_coef_theta_old[[k]]%*%alpha_resi[[g]][pp,Fiber_Ind==k])))))
-        like_can=like_can+sum(sapply(1:G,function(g) sum(sapply(1:p, function(pp) 0.5*log(det(Q_coef_theta_can[[k]]))+as.numeric(-0.5*alpha_resi[[g]][pp,Fiber_Ind==k]%*%Q_coef_theta_can[[k]]%*%alpha_resi[[g]][pp,Fiber_Ind==k])))))
-      }
-      
-      
-      prob=min(1,exp(like_can-like_old))
-      # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
-      MH=(like_can-like_old)
-      Accept<-(log(runif(1))<MH)
-      if (is.na(Accept)|is.na(prob)){Accept=FALSE;prob=0}
-      if(Accept){
-        rho_alpha=rho_alpha_can
-        Q_coef_theta=Q_coef_theta_can
-      }
-      
-      # if(it<=adaptive){
-      #   S_rho_alpha[PP] <- ramcmc::adapt_S(S_rho_alpha[PP], u, prob, it+1)
-      # }
-      if (it>burnins){
-        rho_alpha_MCMC[it-burnins,]<-rho_alpha
-      }
-      
-    }
-    ####################################################################################
-    
-    ##### Metropolis-Hastings:##########################################################
-    ##### Update rho_beta ##############################################################
-    beta_resi=lapply(1:G, function(g) beta[[g]]-mu_beta[[g]])
-    for (PP in 1:P){
-      rho_beta_old<-rho_beta
-      pacf_beta_old<-inla.ar.phi2pacf(rho_beta_old)
-      #u<-rnorm(1)*S_rho_beta[PP]
-      pacf_beta_can<-pacf_beta_old
-      #pacf_beta_can[PP]<-min(0.99,inv.logit(logit(pacf_beta_can[PP])+u))
-      pacf_beta_can[PP]<-tanh(rnorm(1,0,0.5))*0
-      rho_beta_can<-inla.ar.pacf2phi(pacf_beta_can)
-      
-      Q_coef_phi_old=Q_coef_phi
-      Q_coef_phi_can<-(lapply(1:K, function(k) solve(ARMA.var(n=sum(Fiber_Ind==k), ar=rho_beta_can,corr=TRUE)*sigma_phi^2) ) )
-      
-      
-      #like_old<-dbeta(pacf_beta_old[PP],10,1,log=TRUE)
-      #like_can<-dbeta(pacf_beta_can[PP],10,1,log=TRUE)
-      
-      like_old<-0
-      like_can<-0
-      
-      for (k in 1:K){
-        like_old=like_old+sum(sapply(1:G,function(g) sum(sapply(1:p, function(pp) 0.5*log(det(Q_coef_phi_old[[k]]))+as.numeric(-0.5*beta_resi[[g]][pp,Fiber_Ind==k]%*%Q_coef_phi_old[[k]]%*%beta_resi[[g]][pp,Fiber_Ind==k])))))
-        like_can=like_can+sum(sapply(1:G,function(g) sum(sapply(1:p, function(pp) 0.5*log(det(Q_coef_phi_can[[k]]))+as.numeric(-0.5*beta_resi[[g]][pp,Fiber_Ind==k]%*%Q_coef_phi_can[[k]]%*%beta_resi[[g]][pp,Fiber_Ind==k])))))
-      }
-      
-      
-      prob=min(1,exp(like_can-like_old))
-      # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
-      MH=(like_can-like_old)
-      Accept<-(log(runif(1))<MH)
-      if (is.na(Accept)|is.na(prob)){Accept=FALSE; prob=0}
-      if(Accept){
-        rho_beta=rho_beta_can
-        Q_coef_phi=Q_coef_phi_can
-      }
-      
-      # if(it<=adaptive){
-      #   S_rho_beta[PP] <- ramcmc::adapt_S(S_rho_beta[PP], u, prob, it+1)
-      # }
-      if (it>burnins){
-        rho_beta_MCMC[it-burnins,]<-rho_beta
-      }
-      
-    }
-    ########################################################################################
+    # ##### Metropolis-Hastings:###################################################################
+    # ##### Update rho_alpha ######################################################################
+    # alpha_resi=lapply(1:G, function(g) alpha[[g]]-mu_alpha[[g]])
+    # for (PP in 1:P){
+    #   rho_alpha_old<-rho_alpha
+    #   pacf_alpha_old<-inla.ar.phi2pacf(rho_alpha_old)
+    #   #u<-rnorm(1)*S_rho_alpha[PP]
+    #   pacf_alpha_can<-pacf_alpha_old
+    #   #pacf_alpha_can[PP]<-min(0.99,inv.logit(logit(pacf_alpha_can[PP])+u))
+    #   pacf_alpha_can[PP]<-tanh(rnorm(1,0,0.5))
+    #   rho_alpha_can<-inla.ar.pacf2phi(pacf_alpha_can)
+    #   
+    #   
+    #   Q_coef_theta_old=Q_coef_theta
+    #   Q_coef_theta_can<-(lapply(1:K, function(k) solve(ARMA.var(n=sum(Fiber_Ind==k), ar=rho_alpha_can,corr=TRUE)*sigma_theta^2) ) )
+    #   
+    #   
+    #   #like_old<-dbeta(pacf_alpha_old[PP],10,1,log=TRUE)
+    #   #like_can<-dbeta(pacf_alpha_can[PP],10,1,log=TRUE)
+    #   
+    #   like_old<-0
+    #   like_can<-0
+    #   for (k in 1:K){
+    #     like_old=like_old+sum(sapply(1:G,function(g) sum(sapply(1:p, function(pp) 0.5*log(det(Q_coef_theta_old[[k]]))+as.numeric(-0.5*alpha_resi[[g]][pp,Fiber_Ind==k]%*%Q_coef_theta_old[[k]]%*%alpha_resi[[g]][pp,Fiber_Ind==k])))))
+    #     like_can=like_can+sum(sapply(1:G,function(g) sum(sapply(1:p, function(pp) 0.5*log(det(Q_coef_theta_can[[k]]))+as.numeric(-0.5*alpha_resi[[g]][pp,Fiber_Ind==k]%*%Q_coef_theta_can[[k]]%*%alpha_resi[[g]][pp,Fiber_Ind==k])))))
+    #   }
+    #   
+    #   
+    #   prob=min(1,exp(like_can-like_old))
+    #   # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
+    #   MH=(like_can-like_old)
+    #   Accept<-(log(runif(1))<MH)
+    #   if (is.na(Accept)|is.na(prob)){Accept=FALSE;prob=0}
+    #   if(Accept){
+    #     rho_alpha=rho_alpha_can
+    #     Q_coef_theta=Q_coef_theta_can
+    #   }
+    #   
+    #   # if(it<=adaptive){
+    #   #   S_rho_alpha[PP] <- ramcmc::adapt_S(S_rho_alpha[PP], u, prob, it+1)
+    #   # }
+    #   if (it>burnins){
+    #     rho_alpha_MCMC[it-burnins,]<-rho_alpha
+    #   }
+    #   
+    # }
+    # ####################################################################################
+    # 
+    # ##### Metropolis-Hastings:##########################################################
+    # ##### Update rho_beta ##############################################################
+    # beta_resi=lapply(1:G, function(g) beta[[g]]-mu_beta[[g]])
+    # for (PP in 1:P){
+    #   rho_beta_old<-rho_beta
+    #   pacf_beta_old<-inla.ar.phi2pacf(rho_beta_old)
+    #   #u<-rnorm(1)*S_rho_beta[PP]
+    #   pacf_beta_can<-pacf_beta_old
+    #   #pacf_beta_can[PP]<-min(0.99,inv.logit(logit(pacf_beta_can[PP])+u))
+    #   pacf_beta_can[PP]<-tanh(rnorm(1,0,0.5))
+    #   rho_beta_can<-inla.ar.pacf2phi(pacf_beta_can)
+    #   
+    #   Q_coef_phi_old=Q_coef_phi
+    #   Q_coef_phi_can<-(lapply(1:K, function(k) solve(ARMA.var(n=sum(Fiber_Ind==k), ar=rho_beta_can,corr=TRUE)*sigma_phi^2) ) )
+    #   
+    #   
+    #   #like_old<-dbeta(pacf_beta_old[PP],10,1,log=TRUE)
+    #   #like_can<-dbeta(pacf_beta_can[PP],10,1,log=TRUE)
+    #   
+    #   like_old<-0
+    #   like_can<-0
+    #   
+    #   for (k in 1:K){
+    #     like_old=like_old+sum(sapply(1:G,function(g) sum(sapply(1:p, function(pp) 0.5*log(det(Q_coef_phi_old[[k]]))+as.numeric(-0.5*beta_resi[[g]][pp,Fiber_Ind==k]%*%Q_coef_phi_old[[k]]%*%beta_resi[[g]][pp,Fiber_Ind==k])))))
+    #     like_can=like_can+sum(sapply(1:G,function(g) sum(sapply(1:p, function(pp) 0.5*log(det(Q_coef_phi_can[[k]]))+as.numeric(-0.5*beta_resi[[g]][pp,Fiber_Ind==k]%*%Q_coef_phi_can[[k]]%*%beta_resi[[g]][pp,Fiber_Ind==k])))))
+    #   }
+    #   
+    #   
+    #   prob=min(1,exp(like_can-like_old))
+    #   # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
+    #   MH=(like_can-like_old)
+    #   Accept<-(log(runif(1))<MH)
+    #   if (is.na(Accept)|is.na(prob)){Accept=FALSE; prob=0}
+    #   if(Accept){
+    #     rho_beta=rho_beta_can
+    #     Q_coef_phi=Q_coef_phi_can
+    #   }
+    #   
+    #   # if(it<=adaptive){
+    #   #   S_rho_beta[PP] <- ramcmc::adapt_S(S_rho_beta[PP], u, prob, it+1)
+    #   # }
+    #   if (it>burnins){
+    #     rho_beta_MCMC[it-burnins,]<-rho_beta
+    #   }
+    #   
+    # }
+    # ########################################################################################
     
     
     ##### Gibbs Sampling:###################################################################
@@ -430,99 +463,99 @@ VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fi
     #############################################################################################
     
     
-    ##### Metropolis-Hastings:###################################################################
-    ##### Update rho_epsilon  rho_xi ############################################################
-    ##### PART0: Preparing Residuals ############################################################
-    Resi_theta_phi_all<-lapply(1:I,function(i) theta_phi_scaled_all[[i]]-Mean_theta_phi_all[[i]])
-    Resi_theta=sapply(1:I, function(i) Resi_theta_phi_all[[i]][,1])
-    Resi_phi=sapply(1:I, function(i) Resi_theta_phi_all[[i]][,2])
-    #############################################################################################
-    ##### PART1.1. Updating rho_epsilon #########################################################
-    for (PP in 1:P){
-      rho_epsilon_old<-rho_epsilon
-      pacf_epsilon_old<-inla.ar.phi2pacf(rho_epsilon_old)
-      #u<-rnorm(1)*S_rho_epsilon[PP]
-      pacf_epsilon_can<-pacf_epsilon_old
-      #pacf_epsilon_can[PP]<-min(0.99,inv.logit(logit(pacf_epsilon_can[PP])+u))
-      pacf_epsilon_can[PP]<-tanh(rnorm(1,0,0.5))*0
-      rho_epsilon_can<-inla.ar.pacf2phi(pacf_epsilon_can)
-      
-      
-      Q_resi_theta_old=Q_resi_theta
-      Q_resi_theta_can<-(lapply(1:K, function(k) solve(ARMA.var(n=sum(Fiber_Ind==k), ar=rho_epsilon_can,corr=TRUE)*tau_theta^2)    ))
-      
-      like_old<-0
-      like_can<-0
-      for(k in 1:K){
-        like_old=like_old+sum(sapply(1:I,function(i) 0.5*log(det(Q_resi_theta_old[[k]]))+as.numeric(-0.5*Resi_theta[Fiber_Ind==k,i]%*%Q_resi_theta_old[[k]]%*%Resi_theta[Fiber_Ind==k,i])))
-        like_can=like_can+sum(sapply(1:I,function(i) 0.5*log(det(Q_resi_theta_can[[k]]))+as.numeric(-0.5*Resi_theta[Fiber_Ind==k,i]%*%Q_resi_theta_can[[k]]%*%Resi_theta[Fiber_Ind==k,i])))
-      }
-      
-      
-      prob=min(1,exp(like_can-like_old));prob
-      # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
-      MH=(like_can-like_old)
-      Accept<-(log(runif(1))<MH)
-      if (is.na(Accept)|is.na(prob)){Accept=FALSE;prob=0}
-      if(Accept){
-        rho_epsilon=rho_epsilon_can
-        Q_resi_theta=Q_resi_theta_can
-      }
-      
-      # if(it<=adaptive){
-      #   S_rho_epsilon[PP] <- ramcmc::adapt_S(S_rho_epsilon[PP], u, prob, it+1)
-      # }
-      if(it>burnins){
-        rho_epsilon_MCMC[it-burnins,]<-rho_epsilon
-      }
-      
-      
-    }
-    ##############################################################################################
-    ##### PART1.2. Updating rho_xi ###############################################################
-    for (PP in 1:P){
-      rho_xi_old<-rho_xi
-      pacf_xi_old<-inla.ar.phi2pacf(rho_xi_old)
-      #u<-rnorm(1)*S_rho_xi[PP]
-      pacf_xi_can<-pacf_xi_old
-      #pacf_xi_can[PP]<-min(0.99,inv.logit(logit(pacf_xi_can[PP])+u))
-      pacf_xi_can[PP]<-tanh(rnorm(1,0,0.5))*0
-      rho_xi_can<-inla.ar.pacf2phi(pacf_xi_can)
-      
-      Q_resi_phi_old=Q_resi_phi
-      Q_resi_phi_can<-(lapply(1:K, function(k) solve(ARMA.var(n=sum(Fiber_Ind==k), ar=rho_xi_can,corr=TRUE)*tau_theta^2)    ))
-      
-      #like_old<-dbeta(pacf_xi_old[PP],10,1,log=TRUE  )
-      #like_can<-dbeta(pacf_xi_can[PP],10,1,log=TRUE  )
-      
-      like_old<-0
-      like_can<-0
-      
-      for(k in 1:K){
-        like_old=like_old+sum(sapply(1:I,function(i) 0.5*log(det(Q_resi_phi_old[[k]]))+as.numeric(-0.5*Resi_phi[Fiber_Ind==k,i]%*%Q_resi_phi_old[[k]]%*%Resi_phi[Fiber_Ind==k,i])))
-        like_can=like_can+sum(sapply(1:I,function(i) 0.5*log(det(Q_resi_phi_can[[k]]))+as.numeric(-0.5*Resi_phi[Fiber_Ind==k,i]%*%Q_resi_phi_can[[k]]%*%Resi_phi[Fiber_Ind==k,i])))
-      }
-      
-      
-      prob=min(1,exp(like_can-like_old));prob
-      # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
-      MH=(like_can-like_old)
-      Accept<-(log(runif(1))<MH)
-      if (is.na(Accept)|is.na(prob)){Accept=FALSE;prob=0}
-      if(Accept){
-        rho_xi=rho_xi_can
-        Q_resi_phi=Q_resi_phi_can
-      }
-      
-      # if(it<=adaptive){
-      #   S_rho_xi[PP] <- ramcmc::adapt_S(S_rho_xi[PP], u, prob, it+1)
-      # }
-      if(it>burnins){
-        rho_xi_MCMC[it-burnins,]<-rho_xi
-      }
-      
-    }
-    #############################################################################################
+    # ##### Metropolis-Hastings:###################################################################
+    # ##### Update rho_epsilon  rho_xi ############################################################
+    # ##### PART0: Preparing Residuals ############################################################
+    # Resi_theta_phi_all<-lapply(1:I,function(i) theta_phi_scaled_all[[i]]-Mean_theta_phi_all[[i]])
+    # Resi_theta=sapply(1:I, function(i) Resi_theta_phi_all[[i]][,1])
+    # Resi_phi=sapply(1:I, function(i) Resi_theta_phi_all[[i]][,2])
+    # #############################################################################################
+    # ##### PART1.1. Updating rho_epsilon #########################################################
+    # for (PP in 1:P){
+    #   rho_epsilon_old<-rho_epsilon
+    #   pacf_epsilon_old<-inla.ar.phi2pacf(rho_epsilon_old)
+    #   #u<-rnorm(1)*S_rho_epsilon[PP]
+    #   pacf_epsilon_can<-pacf_epsilon_old
+    #   #pacf_epsilon_can[PP]<-min(0.99,inv.logit(logit(pacf_epsilon_can[PP])+u))
+    #   pacf_epsilon_can[PP]<-tanh(rnorm(1,0,0.5))
+    #   rho_epsilon_can<-inla.ar.pacf2phi(pacf_epsilon_can)
+    #   
+    #   
+    #   Q_resi_theta_old=Q_resi_theta
+    #   Q_resi_theta_can<-(lapply(1:K, function(k) solve(ARMA.var(n=sum(Fiber_Ind==k), ar=rho_epsilon_can,corr=TRUE)*tau_theta^2)    ))
+    #   
+    #   like_old<-0
+    #   like_can<-0
+    #   for(k in 1:K){
+    #     like_old=like_old+sum(sapply(1:I,function(i) 0.5*log(det(Q_resi_theta_old[[k]]))+as.numeric(-0.5*Resi_theta[Fiber_Ind==k,i]%*%Q_resi_theta_old[[k]]%*%Resi_theta[Fiber_Ind==k,i])))
+    #     like_can=like_can+sum(sapply(1:I,function(i) 0.5*log(det(Q_resi_theta_can[[k]]))+as.numeric(-0.5*Resi_theta[Fiber_Ind==k,i]%*%Q_resi_theta_can[[k]]%*%Resi_theta[Fiber_Ind==k,i])))
+    #   }
+    #   
+    #   
+    #   prob=min(1,exp(like_can-like_old));prob
+    #   # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
+    #   MH=(like_can-like_old)
+    #   Accept<-(log(runif(1))<MH)
+    #   if (is.na(Accept)|is.na(prob)){Accept=FALSE;prob=0}
+    #   if(Accept){
+    #     rho_epsilon=rho_epsilon_can
+    #     Q_resi_theta=Q_resi_theta_can
+    #   }
+    #   
+    #   # if(it<=adaptive){
+    #   #   S_rho_epsilon[PP] <- ramcmc::adapt_S(S_rho_epsilon[PP], u, prob, it+1)
+    #   # }
+    #   if(it>burnins){
+    #     rho_epsilon_MCMC[it-burnins,]<-rho_epsilon
+    #   }
+    #   
+    #   
+    # }
+    # ##############################################################################################
+    # ##### PART1.2. Updating rho_xi ###############################################################
+    # for (PP in 1:P){
+    #   rho_xi_old<-rho_xi
+    #   pacf_xi_old<-inla.ar.phi2pacf(rho_xi_old)
+    #   #u<-rnorm(1)*S_rho_xi[PP]
+    #   pacf_xi_can<-pacf_xi_old
+    #   #pacf_xi_can[PP]<-min(0.99,inv.logit(logit(pacf_xi_can[PP])+u))
+    #   pacf_xi_can[PP]<-tanh(rnorm(1,0,0.5))
+    #   rho_xi_can<-inla.ar.pacf2phi(pacf_xi_can)
+    #   
+    #   Q_resi_phi_old=Q_resi_phi
+    #   Q_resi_phi_can<-(lapply(1:K, function(k) solve(ARMA.var(n=sum(Fiber_Ind==k), ar=rho_xi_can,corr=TRUE)*tau_theta^2)    ))
+    #   
+    #   #like_old<-dbeta(pacf_xi_old[PP],10,1,log=TRUE  )
+    #   #like_can<-dbeta(pacf_xi_can[PP],10,1,log=TRUE  )
+    #   
+    #   like_old<-0
+    #   like_can<-0
+    #   
+    #   for(k in 1:K){
+    #     like_old=like_old+sum(sapply(1:I,function(i) 0.5*log(det(Q_resi_phi_old[[k]]))+as.numeric(-0.5*Resi_phi[Fiber_Ind==k,i]%*%Q_resi_phi_old[[k]]%*%Resi_phi[Fiber_Ind==k,i])))
+    #     like_can=like_can+sum(sapply(1:I,function(i) 0.5*log(det(Q_resi_phi_can[[k]]))+as.numeric(-0.5*Resi_phi[Fiber_Ind==k,i]%*%Q_resi_phi_can[[k]]%*%Resi_phi[Fiber_Ind==k,i])))
+    #   }
+    #   
+    #   
+    #   prob=min(1,exp(like_can-like_old));prob
+    #   # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
+    #   MH=(like_can-like_old)
+    #   Accept<-(log(runif(1))<MH)
+    #   if (is.na(Accept)|is.na(prob)){Accept=FALSE;prob=0}
+    #   if(Accept){
+    #     rho_xi=rho_xi_can
+    #     Q_resi_phi=Q_resi_phi_can
+    #   }
+    #   
+    #   # if(it<=adaptive){
+    #   #   S_rho_xi[PP] <- ramcmc::adapt_S(S_rho_xi[PP], u, prob, it+1)
+    #   # }
+    #   if(it>burnins){
+    #     rho_xi_MCMC[it-burnins,]<-rho_xi
+    #   }
+    #   
+    # }
+    # #############################################################################################
     
     
     ##### Gibbs Sampling:#################################################################################

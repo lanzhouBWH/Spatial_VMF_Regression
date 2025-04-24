@@ -3,29 +3,55 @@
 VMF_Reg<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fit=NULL,save.dir=NULL,Saving_Freq=50,Para=TRUE){
   
   
-  dvmf<-function (y, mu, k, logden = FALSE) 
-  {
-    y <- as.matrix(y)
-    p <- dim(y)[2]
-    if (p == 1) 
-      y <- t(y)
-    p <- dim(y)[2]
-    den <- (p/2 - 1) * log(k) - 0.5 * p * log(2 * pi) + k * tcrossprod(mu, 
-                                                                       y) - log(besselI(k, p/2 - 1, expon.scaled = TRUE)) - 
-      k
-    if (!logden) 
-      den <- exp(den)
-    den
+  # dvmf<-function (y, mu, k, logden = FALSE) 
+  # {
+  #   y <- as.matrix(y)
+  #   p <- dim(y)[2]
+  #   if (p == 1) 
+  #     y <- t(y)
+  #   p <- dim(y)[2]
+  #   den <- (p/2 - 1) * log(k) - 0.5 * p * log(2 * pi) + k * tcrossprod(mu, 
+  #                                                                      y) - log(besselI(k, p/2 - 1, expon.scaled = TRUE)) - 
+  #     k
+  #   if (!logden) 
+  #     den <- exp(den)
+  #   den
+  # }
+  
+  quadform_change_by_k <- function(y, Q, k, new_yk) {
+    yk_old <- y[k]
+    y_fixed <- y
+    y_fixed[k] <- 0
+    cross_term <- sum(Q[k, ] * y_fixed)
+    delta <- 2 * (new_yk - yk_old) * cross_term +
+      (new_yk^2 - yk_old^2) * Q[k, k]
+    return(delta)
   }
+  
+  
+  
+  dvmf<- function(y, mu, kappa, logden = FALSE) {
+    # Normalize inputs to unit vectors (just in case)
+    y <- as.numeric(y / sqrt(sum(y^2)))
+    mu <- as.numeric(mu / sqrt(sum(mu^2)))
+    
+    dot <- sum(mu * y)
+    
+    if (logden) {
+      log_density <- log(kappa) - log(4 * pi * sinh(kappa)) + kappa * dot
+      return(log_density)
+    } else {
+      density <- (kappa / (4 * pi * sinh(kappa))) * exp(kappa * dot)
+      return(density)
+    }
+  }
+  
   
   
   #### Register Cluster ################################################################################
   #myCluster <- makeCluster(detectCores()-1, # number of cores to use
   #                         type = "SOCK") # type of cluster
   #registerDoParallel(myCluster)
-  if(Para==TRUE){
-    registerDoParallel(cores=detectCores()-1)
-  }
   ######################################################################################################
   
   
@@ -38,11 +64,18 @@ VMF_Reg<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fit=NULL,save
     it=1
     
     #### Exact List Object to environment#################################################################
-    list2env(Data_list, globalenv())
+    #list2env(Data_list, globalenv())
+    Y <- Data_list$Y
+    Fiber_Ind <- Data_list$Fiber_Ind
+    group_index <- Data_list$group_index
+    X <- Data_list$X
     I=length(Y); V=length(Fiber_Ind); p=ncol(X); K=length(unique(Fiber_Ind)); G=length(unique(group_index))
+    Fiber_Seq <- ave(Fiber_Ind, Fiber_Ind, FUN = seq_along)
     ######################################################################################################
     
-    
+    if(Para==TRUE){
+      registerDoParallel(cores=I)
+    }
     #### Conditional Distribution Sepecifcation ##########################################################
     #COND_DIST=lapply(1:K, function(k)  vecchia_specify(matrix(1:sum(Fiber_Ind==k),ncol=1),m=P)$U.prep$revNNarray)
     #V_Ktype=unlist(lapply(1:K, function(k) 1:sum(Fiber_Ind==k) ))
@@ -185,11 +218,14 @@ VMF_Reg<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fit=NULL,save
   
   pb <- txtProgressBar(min = 0, max = iters, style = 3)
   for (it in it:iters){
+    if (it %% 10 == 0) {
+      cat("Iteration:", it, "\n")
+    }
     setTxtProgressBar(pb, it)
- 
+    
     ##### Metropolis Hastings:#######
     ##### theta_phi_scaled_all:#######
-    OOO<-foreach(i=1:I ) %dopar% {
+    OOO<-foreach(i=1:I,.export = c("theta_phi_scaled2mu","inv.logit","sph2cart") ) %dopar% {
       
       ii=sample(1:I,1)
       
@@ -209,12 +245,11 @@ VMF_Reg<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fit=NULL,save
           Resi_theta_phi_old<-theta_phi_scaled_old-Mean_theta_phi_all[[i]]
           Resi_theta_phi_can<-theta_phi_scaled_can-Mean_theta_phi_all[[i]]
           
-          like_old=dvmf(U%*%Y[[i]][v,],  as.numeric(theta_phi_scaled2mu(theta_phi_scaled_old[v,]),kappa), TRUE)+
-            as.numeric(-0.5*(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],1]%*%Q_resi_theta[[Fiber_Ind[v]]])%*%(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],1]))+
-            as.numeric(-0.5*(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],2]%*%Q_resi_phi[[Fiber_Ind[v]]])%*%(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],2]))
-          like_can=dvmf(U%*%Y[[i]][v,],as.numeric(theta_phi_scaled2mu(theta_phi_scaled_can[v,]),kappa),TRUE)+
-            as.numeric(-0.5*(Resi_theta_phi_can[Fiber_Ind==Fiber_Ind[v],1]%*%Q_resi_theta[[Fiber_Ind[v]]])%*%(Resi_theta_phi_can[Fiber_Ind==Fiber_Ind[v],1]))+
-            as.numeric(-0.5*(Resi_theta_phi_can[Fiber_Ind==Fiber_Ind[v],2]%*%Q_resi_phi[[Fiber_Ind[v]]])%*%(Resi_theta_phi_can[Fiber_Ind==Fiber_Ind[v],2]))
+          like_old=dvmf(U%*%Y[[i]][v,],  (theta_phi_scaled2mu(theta_phi_scaled_old[v,])),kappa, TRUE)
+          like_can=dvmf(U%*%Y[[i]][v,],(theta_phi_scaled2mu(theta_phi_scaled_can[v,])),kappa,TRUE)
+          diff1=like_can-like_old
+          diff2=-0.5*quadform_change_by_k(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],1], Q_resi_theta[[Fiber_Ind[v]]], Fiber_Seq[v], Resi_theta_phi_can[v,1])
+          diff3=-0.5*quadform_change_by_k(Resi_theta_phi_old[Fiber_Ind==Fiber_Ind[v],2], Q_resi_phi[[Fiber_Ind[v]]], Fiber_Seq[v], Resi_theta_phi_can[v,2])
           
           # like_old=dvmf(Y[[i]][v,],  as.numeric(theta_phi_scaled2mu(theta_phi_scaled_old[v,]),kappa),TRUE)
           # like_can=dvmf(Y[[i]][v,],as.numeric(theta_phi_scaled2mu(theta_phi_scaled_can[v,]),kappa),TRUE)
@@ -226,12 +261,11 @@ VMF_Reg<-function(Data_list,iters=50000,burnins=0,adaptive=200,P=3,fit=NULL,save
           # A=Q_resi_theta[[Fiber_Ind[v]]]
           
           
-          prob=min(1,as.numeric(exp(like_can-like_old
-          )))
           # Accept=sample(c(0,1),size=1,prob=c(1-prob,prob))
-          MH=(like_can-like_old)
+          prob=min(1,as.numeric(exp(diff1+diff2+diff3
+          )))
+          MH=(diff1+diff2+diff3)
           Accept<-(log(runif(1))<MH)
-          if (is.na(Accept)|is.na(prob)){Accept=FALSE; prob=0}
           if(Accept){
             
             theta_phi_scaled_all[[i]]<-theta_phi_scaled_can
