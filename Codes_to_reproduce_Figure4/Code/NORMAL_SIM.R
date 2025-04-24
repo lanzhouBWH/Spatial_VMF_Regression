@@ -20,7 +20,7 @@ load(paste0(Data_Path,"synthetic.Rdata"))
 for(Rep in 1:50){            ### The specification for 50 Replications ###
   set.seed(Rep)              ### Set Seed
   for(kappa in c(20,30,40)){ ### The specification for Conerntration Parameter kappa=20,30,40 ###
-    for(P in 2:7){           ### The specification for Lagkappa=20,30,40 ###
+      cat("Gaussian Regression Running Rep =", Rep, ", kappa =", kappa,  "\n")
       ################################################################################
       ######## Step 1: Data Simulation ###############################################
       ################################################################################
@@ -80,6 +80,5 @@ for(Rep in 1:50){            ### The specification for 50 Replications ###
       ################################################################################
       ################################################################################
       ################################################################################
-    }
   }
 }

@@ -23,6 +23,7 @@ for(Rep in 1:50){            ### The specification for 50 Replications ###
   set.seed(Rep)
   for(kappa in c(20,30,40)){ ### The specification for Conerntration Parameter kappa=20,30,40 ###
     for(P in 2:7){           ### The specification for Lagkappa=20,30,40 ###
+      cat("Spatial VMF Regression Running Rep =", Rep, ", kappa =", kappa, ", P =", P, "\n")
       ################################################################################
       ######## Step 1: Data Simulation ###############################################
       ################################################################################

@@ -19,7 +19,7 @@ load(paste0(Data_Path,"synthetic.Rdata"))
 for(Rep in 1:50){            ### The specification for 50 Replications ###
   set.seed(Rep)
   for(kappa in c(20,30,40)){ ### The specification for Conerntration Parameter kappa=20,30,40 ###
-    for(P in 2:7){           ### The specification for Lagkappa=20,30,40 ###
+    cat("Spatial VMF Regression Running Rep =", Rep, ", kappa =", kappa, ", P =", P, "\n")
       ################################################################################
       ######## Step 1: Data Simulation ###############################################
       ################################################################################
@@ -59,7 +59,7 @@ for(Rep in 1:50){            ### The specification for 50 Replications ###
       ################################################################################
       Iter=5000
       Burn=2000
-      fit<-VMF_Reg_NonSpatial(Data_List_Training,iters=Iter,burnins=Burn,adaptive=Burn,P=P,Para = TRUE) ### MCMC Model Fitting
+      fit<-VMF_Reg_NonSpatial(Data_List_Training,iters=Iter,burnins=Burn,adaptive=Burn,Para = TRUE) ### MCMC Model Fitting
       ################################################################################
       ################################################################################
       ################################################################################
