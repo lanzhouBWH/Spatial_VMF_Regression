@@ -12,9 +12,6 @@ Function_Path=paste0("Spatial_VMF_Regression/Functions/")
 source.all(Function_Path)
 ################################################################################
 
-####### Load Synthetic Data ####################################################
-load(paste0(Data_Path,"synthetic.Rdata"))
-################################################################################
 
 
 
@@ -23,6 +20,10 @@ for(Rep in 1:50){            ### The specification for 50 Replications ###
   set.seed(Rep)
   for(kappa in c(20,30,40)){ ### The specification for Conerntration Parameter kappa=20,30,40 ###
     for(P in 2:7){           ### The specification for Lagkappa=20,30,40 ###
+      ####### Load Synthetic Data ####################################################
+      load(paste0(Data_Path,"synthetic.Rdata"))
+      ################################################################################
+      
       cat("Spatial VMF Regression Running Rep =", Rep, ", kappa =", kappa, ", P =", P, "\n")
       ################################################################################
       ######## Step 1: Data Simulation ###############################################
@@ -71,8 +72,8 @@ for(Rep in 1:50){            ### The specification for 50 Replications ###
       ################################################################################
       ######## Step 3: Evaluation Metric Calculation #################################
       ################################################################################
-      Validation_lmvmf_p<-Validation.lmvmf(fit,Data_List_Validation,iters=fit$it,burnins=0)
-      Validation_lmvmf_p.regular<-Validation.lmvmf.regular(fit,Data_List_Validation,iters=fit$it,burnins=0)
+      Validation_lmvmf_p<-Validation.lmvmf(fit,Data_List_Validation,iters=fit$it-Burn,burnins=0)
+      Validation_lmvmf_p.regular<-Validation.lmvmf.regular(fit,Data_List_Validation,iters=fit$it-Burn,burnins=0)
       save(Validation_lmvmf_p, Validation_lmvmf_p.regular, file=paste(Output_Path,"VMF_FITTING_P_",P,"_kappa_",kappa,"_Rep_",Rep,".Rdata",sep=""))
       ################################################################################
       ################################################################################

@@ -174,10 +174,10 @@ VMF_Reg_NonSpatial<-function(Data_list,iters=50000,burnins=0,adaptive=200,fit=NU
     alpha_MCMC=lapply(1:G,function(g) array(NA,dim=c(iters-burnins,p,V)) )
     beta_MCMC=lapply(1:G,function(g) array(NA,dim=c(iters-burnins,p,V)) )
     
-    rho_epsilon_MCMC=matrix(NA,iters-burnins,P)
-    rho_xi_MCMC=matrix(NA,iters-burnins,P)
-    rho_alpha_MCMC=matrix(NA,iters-burnins,P)
-    rho_beta_MCMC=matrix(NA,iters-burnins,P)
+    rho_epsilon_MCMC=matrix(0,iters-burnins,P)
+    rho_xi_MCMC=matrix(0,iters-burnins,P)
+    rho_alpha_MCMC=matrix(0,iters-burnins,P)
+    rho_beta_MCMC=matrix(0,iters-burnins,P)
     
     sigma_theta_MCMC=matrix(NA,iters-burnins,1)
     sigma_phi_MCMC=matrix(NA,iters-burnins,1)

@@ -19,7 +19,11 @@ load(paste0(Data_Path,"synthetic.Rdata"))
 for(Rep in 1:50){            ### The specification for 50 Replications ###
   set.seed(Rep)
   for(kappa in c(20,30,40)){ ### The specification for Conerntration Parameter kappa=20,30,40 ###
-    cat("Spatial VMF Regression Running Rep =", Rep, ", kappa =", kappa, ", P =", P, "\n")
+    
+      ####### Load Synthetic Data ####################################################
+      load(paste0(Data_Path,"synthetic.Rdata"))
+      ################################################################################
+      cat("Spatial VMF Regression Running Rep =", Rep, ", kappa =", kappa,  "\n")
       ################################################################################
       ######## Step 1: Data Simulation ###############################################
       ################################################################################
@@ -68,8 +72,8 @@ for(Rep in 1:50){            ### The specification for 50 Replications ###
       ################################################################################
       ######## Step 3: Evaluation Metric Calculation #################################
       ################################################################################
-      Validation_lmvmf_p<-Validation.lmvmf(fit,Data_List_Validation,iters=fit$it,burnins=Burn)
-      Validation_lmvmf_p.regular<-Validation.lmvmf.regular(fit,Data_List_Validation,iters=fit$it,burnins=Burn)
+      Validation_lmvmf_p<-Validation.lmvmf(fit,Data_List_Validation,iters=Iter-Burn,burnins=0)
+      Validation_lmvmf_p.regular<-Validation.lmvmf.regular(fit,Data_List_Validation,iters=Iter-Burn,burnins=0)
       save(Validation_lmvmf_p, Validation_lmvmf_p.regular, file=paste(Output_Path,"NonSpatial_VMF_FITTING","_kappa_",kappa,"_Rep_",Rep,".Rdata",sep=""))
       ################################################################################
       ################################################################################

@@ -13,13 +13,15 @@ Function_Path=paste0("Spatial_VMF_Regression/Functions/")
 source.all(Function_Path)
 ################################################################################
 
-####### Load Synthetic Data ####################################################
-load(paste0(Data_Path,"synthetic.Rdata"))
-################################################################################
+
 
 for(Rep in 1:50){            ### The specification for 50 Replications ###
   set.seed(Rep)              ### Set Seed
   for(kappa in c(20,30,40)){ ### The specification for Conerntration Parameter kappa=20,30,40 ###
+      ####### Load Synthetic Data ####################################################
+      load(paste0(Data_Path,"synthetic.Rdata"))
+      ################################################################################
+    
       cat("Gaussian Regression Running Rep =", Rep, ", kappa =", kappa,  "\n")
       ################################################################################
       ######## Step 1: Data Simulation ###############################################
@@ -70,12 +72,12 @@ for(Rep in 1:50){            ### The specification for 50 Replications ###
       ################################################################################
       ######## Step 3: Evaluation Metric Calculation #################################
       ################################################################################
-      Validation_Normal1<-Validation.Normal1(fit_Normal1,Data_List_Validation,iters=5000,burnins=0)
-      Validation_Normal1.regular<-Validation.Normal2.regular(fit_Normal1,Data_List_Validation,iters=5000,burnins=0)
+      Validation_Normal1<-Validation.Normal1(fit_Normal1,Data_List_Validation,iters=Iter-Burn,burnins=0)
+      Validation_Normal1.regular<-Validation.Normal2.regular(fit_Normal1,Data_List_Validation,iters=Iter-Burn,burnins=0)
       save(Validation_Normal1, Validation_Normal1.regular,file=paste(Output_Path,"VMF_Normal1_","_kappa_",kappa,"_Rep_",Rep,".Rdata",sep=""))
       
-      Validation_Normal2<-Validation.Normal2(fit_Normal2,Data_List_Validation,iters=5000,burnins=0)
-      Validation_Normal2.regular<-Validation.Normal2.regular(fit_Normal2,Data_List_Validation,iters=5000,burnins=0)
+      Validation_Normal2<-Validation.Normal2(fit_Normal2,Data_List_Validation,iters=Iter-Burn,burnins=0)
+      Validation_Normal2.regular<-Validation.Normal2.regular(fit_Normal2,Data_List_Validation,iters=Iter-Burn,burnins=0)
       save(Validation_Normal2, Validation_Normal2.regular,file=paste(Output_Path,"VMF_Normal2_","_kappa_",kappa,"_Rep_",Rep,".Rdata",sep=""))
       ################################################################################
       ################################################################################
